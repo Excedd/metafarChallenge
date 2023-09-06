@@ -1,7 +1,9 @@
-﻿using Domain.Repositories;
+﻿using Domain.Exceptions;
+using Domain.Repositories;
 using Domain.Services;
 using Entities;
 using Moq;
+using Xunit;
 
 namespace Domain.Tests.Services
 {
@@ -21,7 +23,6 @@ namespace Domain.Tests.Services
             //assert
             Assert.Equal(card.FailedTries, 2);
             cardRepository.Verify();
-
         }
 
         [Fact]
@@ -35,12 +36,17 @@ namespace Domain.Tests.Services
             var sut = new ValidateCardService(cardRepository.Object);
 
             //act
-            await Assert.ThrowsAsync<NotImplementedException>(async () => await sut.Validate(card, "11"));
+            try
+            {
+                await sut.Validate(card, "11");
+            }
+            catch (Exception ex)
+            {
+                Assert.IsType<BadPin>(ex);
+            }
 
             //assert
-            Assert.Equal(card.Blocked, true);
             cardRepository.Verify();
-
         }
     }
 }

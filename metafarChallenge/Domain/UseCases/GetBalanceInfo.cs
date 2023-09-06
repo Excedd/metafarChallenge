@@ -1,4 +1,5 @@
 ﻿using Domain.DTO;
+using Domain.Exceptions;
 using Domain.Repositories;
 
 namespace Domain.UseCases
@@ -19,7 +20,7 @@ namespace Domain.UseCases
 
         public async Task<BalanceInfo> DoAsync(string cardNumber)
         {
-            var card = await _cardRepository.GetCardByNumberAsync(cardNumber) ?? throw new NotImplementedException();
+            var card = await _cardRepository.GetCardByNumberAsync(cardNumber) ?? throw new CardNotFoundException();
             return new BalanceInfo(card.UserName, card.CardId, card.Balance, card.LastExtraction.ToString("yyyy-MM-dd HH:mm:ss"));
         }
     }

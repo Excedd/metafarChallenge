@@ -1,4 +1,5 @@
-﻿using Domain.Repositories;
+﻿using Domain.Exceptions;
+using Domain.Repositories;
 using Domain.Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -7,7 +8,7 @@ namespace Domain.UseCases
 {
     public interface ILogUser
     {
-        public Task<string> DoAsync(string numberCard, string pin);
+        public Task DoAsync(string numberCard, string pin);
     }
 
     public class LogUser : ILogUser
@@ -21,21 +22,10 @@ namespace Domain.UseCases
             _validateCard = validateCard;
         }
 
-        public async Task<string> DoAsync(string numberCard, string pin)
+        public async Task DoAsync(string numberCard, string pin)
         {
-            var card = await _cardRepository.GetCardByNumberAsync(numberCard) ?? throw new NotImplementedException(nameof(numberCard));
+            var card = await _cardRepository.GetCardByNumberAsync(numberCard) ?? throw new CardNotFoundException();
             await _validateCard.Validate(card, pin);
-            return string.Empty;
-            //return GenerateJwtToken(card.CardId);
-        }
-
-        private static string GenerateJwtToken(int cardId)
-        {
-            var token = new JwtSecurityToken(
-                claims: new[] { new Claim("cardId", cardId.ToString()) },
-                expires: DateTime.UtcNow.AddHours(1));
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }

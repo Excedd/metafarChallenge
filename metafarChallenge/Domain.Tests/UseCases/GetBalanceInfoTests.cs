@@ -2,6 +2,7 @@
 using Domain.UseCases;
 using Entities;
 using Moq;
+using Xunit;
 
 namespace Domain.Tests.UseCases
 {
@@ -18,7 +19,7 @@ namespace Domain.Tests.UseCases
             var getBalanceInfo = new GetBalanceInfo(cardRepository.Object);
 
             // Act
-            var result = await getBalanceInfo.Get("123456");
+            var result = await getBalanceInfo.DoAsync("123456");
 
             // Assert
             Assert.Equal("mcano", result.UserName);

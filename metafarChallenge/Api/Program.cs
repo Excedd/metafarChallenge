@@ -26,53 +26,65 @@ void InitializeData(IServiceProvider serviceProvider)
 {
     using var scope = serviceProvider.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.EnsureCreated();
     if (!dbContext.Card.Any())
     {
-        dbContext.Database.EnsureCreated();
+        var cards = new List<Card>()
+        {
+            new Card("Mcano", 123, "123456", "123", 2000, 3, false, DateTimeOffset.Now),
+            new Card("LBabington", 12345, "1234", "11", 4000, 0, false, DateTimeOffset.Now),
+            new Card("ONoemi", 1234, "123", "123", 40000, 4, false, DateTimeOffset.Now)
+        };
 
-        var card1 = new Card("Mcano", 123, "123456", "123", 2000, 3, false, DateTimeOffset.Now);
-        var card2 = new Card("LBabington", 1234, "1234564", "11", 4000, 0, false, DateTimeOffset.Now);
-        var operation1 = new Operation(Entities.Enums.OperationType.WithDrawal, 6000, 4000, card1.CardId);
-        var operation2 = new Operation(Entities.Enums.OperationType.Transfer, 4000, 5000, card1.CardId);
+        var random = new Random();
+        for (int i = 0; i < 12; i++)
+        {
+            var operation = new Operation(
+                Entities.Enums.OperationType.WithDrawal,
+                (decimal)random.NextDouble() * 1000,
+                (decimal)random.NextDouble() * 2000,
+                cards[2].CardId);
 
-        dbContext.Card.AddRange(card1, card2);
-        dbContext.Operation.AddRange(operation1, operation2);
+            dbContext.Operation.Add(operation);
+        }
+
+        dbContext.Card.AddRange(cards);
         dbContext.SaveChanges();
     }
 }
 
-builder.Services.AddScoped<ICardRepository, CardRepository>();
-builder.Services.AddScoped<IOperationRepository, OperationRepository>();
-builder.Services.AddScoped<IValidateCardService, ValidateCardService>();
-builder.Services.AddScoped<IGetBalanceInfo, GetBalanceInfo>();
-builder.Services.AddScoped<IGetOperation, GetOperations>();
-builder.Services.AddScoped<ILogUser, LogUser>();
-builder.Services.AddScoped<IWithdrawal, Withdrawal>();
-builder.Services.AddRouting();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "MetafarChallenge", Version = "v1" });
-    var securityScheme = new OpenApiSecurityScheme
+builder.Services.AddScoped<ICardRepository, CardRepository>()
+    .AddScoped<IOperationRepository, OperationRepository>()
+    .AddScoped<IValidateCardService, ValidateCardService>()
+    .AddScoped<IGetBalanceInfo, GetBalanceInfo>()
+    .AddScoped<IGetOperation, GetOperations>()
+    .AddScoped<ILogUser, LogUser>()
+    .AddScoped<IWithdrawal, Withdrawal>()
+    .AddRouting()
+    .AddEndpointsApiExplorer()
+    .AddSwaggerGen(c =>
     {
-        Name = "test",
-        Description = "test",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        Reference = new OpenApiReference
+        c.SwaggerDoc("v1", new OpenApiInfo { Title = "MetafarChallenge", Version = "v1" });
+        var securityScheme = new OpenApiSecurityScheme
         {
-            Id = JwtBearerDefaults.AuthenticationScheme,
-            Type = ReferenceType.SecurityScheme
-        }
-    };
-    c.AddSecurityDefinition("Bearer", securityScheme);
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        { securityScheme, Array.Empty<string>() }
+            Name = "test",
+            Description = "test",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            Reference = new OpenApiReference
+            {
+                Id = JwtBearerDefaults.AuthenticationScheme,
+                Type = ReferenceType.SecurityScheme
+            }
+        };
+        c.AddSecurityDefinition("Bearer", securityScheme);
+        c.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            { securityScheme, Array.Empty<string>() }
+        });
     });
-});
-builder.Services.AddEndpointsApiExplorer();
 
 var key = "00112233445566778899AABBCCDDEEFF";
 builder.Services.AddAuthorization();
@@ -102,35 +114,65 @@ app.UseSwaggerUI(options =>
 
 app.MapPost("api/login", async (string numberCard, string pin, UC.ILogUser useCase) =>
 {
-    await useCase.DoAsync(numberCard, pin);
-    var tokenHandler = new JwtSecurityTokenHandler();
-    var byteKey = Encoding.UTF8.GetBytes(key);
-    var tokenDes = new SecurityTokenDescriptor
+    try
     {
-        Subject = new ClaimsIdentity(new Claim[]
+        await useCase.DoAsync(numberCard, pin);
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var byteKey = Encoding.UTF8.GetBytes(key);
+        var tokenDes = new SecurityTokenDescriptor
         {
+            Subject = new ClaimsIdentity(new Claim[]
+            {
             new Claim(ClaimTypes.Name,key),
-
-        }),
-        Expires = DateTime.UtcNow.AddMinutes(2),
-        SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(byteKey), SecurityAlgorithms.HmacSha256Signature)
-    };
-    var token = tokenHandler.CreateToken(tokenDes);
-    return tokenHandler.WriteToken(token);
+            }),
+            Expires = DateTime.UtcNow.AddMinutes(2),
+            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(byteKey), SecurityAlgorithms.HmacSha256Signature)
+        };
+        var token = tokenHandler.CreateToken(tokenDes);
+        return Results.Ok(tokenHandler.WriteToken(token));
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
 });
 
 app.MapPost("api/withdrawal", async (ClaimsPrincipal user, string numberCard, int amount, UC.IWithdrawal useCase) =>
 {
-    await useCase.DoAsync(numberCard, amount);
+    try
+    {
+        var result = await useCase.DoAsync(numberCard, amount);
+        return Results.Ok(result);
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
 }).RequireAuthorization();
 
-app.MapGet("api/balance", async (string numberCard,UC.IGetBalanceInfo useCase) =>
+app.MapGet("api/balance", async (string numberCard, UC.IGetBalanceInfo useCase) =>
 {
-    return await useCase.DoAsync(numberCard);
+    try
+    {
+        var result = await useCase.DoAsync(numberCard);
+        return Results.Ok(result);
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
 }).RequireAuthorization();
 
 app.MapPost("api/operations", async (GetOperationsPaginated getOperationPaginated, UC.IGetOperation useCase) =>
 {
-    return await useCase.DoAsync(getOperationPaginated);
+    try
+    {
+        var result = await useCase.DoAsync(getOperationPaginated);
+        return Results.Ok(result);
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
 }).RequireAuthorization();
 app.Run();

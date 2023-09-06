@@ -1,4 +1,5 @@
 ﻿using Domain.DTO;
+using Domain.Exceptions;
 using Domain.Repositories;
 
 namespace Domain.UseCases
@@ -23,11 +24,10 @@ namespace Domain.UseCases
 
         public async Task<OperationsPaginated> DoAsync(GetOperationsPaginated getOperationsPaginated)
         {
-            var card = await _cardRepository.GetCardByNumberAsync(getOperationsPaginated.CardNumber);
+            var card = await _cardRepository.GetCardByNumberAsync(getOperationsPaginated.CardNumber) ?? throw new CardNotFoundException();
 
             var operations = await _operationRepository.GetOperationsByCardIdAsync(card.CardId,
-                getOperationsPaginated.Page,
-                getOperationsPaginated.PageSize);
+                getOperationsPaginated.Page);
 
             var totalOperations = await _operationRepository.GetTotalOperationsByCardIdAsync(card.CardId);
             var totalPages = (int)Math.Ceiling((double)totalOperations / getOperationsPaginated.PageSize);

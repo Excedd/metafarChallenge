@@ -1,11 +1,13 @@
-﻿using Domain.Repositories;
+﻿using Domain.DTO;
+using Domain.Exceptions;
+using Domain.Repositories;
 using Entities;
 
 namespace Domain.UseCases
 {
     public interface IWithdrawal
     {
-        public Task DoAsync(string cardNumber, int amount);
+        public Task<WithdrawalReturn> DoAsync(string cardNumber, int amount);
     }
 
     public class Withdrawal : IWithdrawal
@@ -20,16 +22,16 @@ namespace Domain.UseCases
             _operationRepository = operationRepository;
         }
 
-        public async Task DoAsync(string cardNumber, int amount)
+        public async Task<WithdrawalReturn> DoAsync(string cardNumber, int amount)
         {
             var card = await _cardRepository.GetCardByNumberAsync(cardNumber);
             if (amount > card.Balance)
-                throw new NotImplementedException();
+                throw new BadAmount();
             var lastBalance = card.Balance;
             var currentBalance = card.SubtractBalance(amount);
             await _operationRepository.AddOperationsAsync(new WithdrawalOperation(amount, lastBalance, currentBalance, card.CardId));
             await _cardRepository.UpdateCardAsync(card);
-
+            return new WithdrawalReturn(lastBalance, currentBalance);
         }
     }
 }

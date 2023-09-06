@@ -1,4 +1,5 @@
-﻿using Domain.Repositories;
+﻿using Domain.Exceptions;
+using Domain.Repositories;
 using Entities;
 
 namespace Domain.Services
@@ -24,11 +25,11 @@ namespace Domain.Services
                 if (card.FailedTries >= 4)
                 {
                     if (card.Blocked)
-                        throw new NotImplementedException();
+                        throw new CardBlocked();
 
                     card.Block();
                     await _cardRepository.UpdateCardAsync(card);
-                    throw new NotImplementedException();
+                    throw new BadPin();
                 }
                 card.AddTry();
                 await _cardRepository.UpdateCardAsync(card);

@@ -14,7 +14,7 @@ namespace Infraestructura.Repositories
         }
 
         public async Task<Card> GetCardByNumberAsync(string cardNumber)
-         => await _appdbContext.Card.Where(c => c.CardNumber == cardNumber).FirstOrDefaultAsync() ?? throw new NotImplementedException();
+         => await _appdbContext.Card.Where(c => c.CardNumber == cardNumber).FirstOrDefaultAsync() ;
 
         public async Task UpdateCardAsync(Card card)
         {

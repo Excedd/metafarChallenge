@@ -18,7 +18,7 @@ namespace Infraestructura.Repositories
             await _appdbContext.Operation.AddAsync(Operation);
         }
 
-        public async Task<List<Operation>> GetOperationsByCardIdAsync(int CardId, int page, int pageSize)
+        public async Task<List<Operation>> GetOperationsByCardIdAsync(int CardId, int page, int pageSize = 10)
             => await _appdbContext.Operation
             .Where(o => o.CardId == CardId)
             .OrderByDescending(o => o.Date)

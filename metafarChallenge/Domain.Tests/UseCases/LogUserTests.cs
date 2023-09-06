@@ -3,6 +3,7 @@ using Domain.Services;
 using Domain.UseCases;
 using Entities;
 using Moq;
+using Xunit;
 
 namespace Domain.Tests.UseCases
 {
@@ -20,20 +21,17 @@ namespace Domain.Tests.UseCases
             var pin = "12345";
 
             cardRepository.Setup(repo => repo.GetCardByNumberAsync(It.IsAny<string>()))
-                .ReturnsAsync(new Card("Mcano", cardId, "123", "12345", 100, 0, false, DateTimeOffset.Now)); 
+                .ReturnsAsync(new Card("Mcano", cardId, "123", "12345", 100, 0, false, DateTimeOffset.Now));
 
             validateCardService.Setup(service => service.Validate(It.IsAny<Card>(), It.IsAny<string>()))
                 .Verifiable();
 
             // Act
-            var result = await sut.DoAsync("1234567890", pin);
+            await sut.DoAsync("1234567890", pin);
 
             // Assert
             validateCardService.Verify();
             cardRepository.Verify();
-            Assert.NotNull(result); 
         }
-
-
     }
 }
