@@ -6,14 +6,12 @@
         {
         }
     }
-
     public class CardBlocked : Exception
     {
         public CardBlocked() : base("Su tarjeta fue bloqueada.")
         {
         }
     }
-
     public class BadPin : Exception
     {
         public BadPin() : base("Pin incorrecto.")
@@ -34,7 +32,13 @@
     }
     public class CardNumberIsNotValid: Exception
     {
-        public CardNumberIsNotValid() : base("El numero de tarjeta ingresado no es valido.")
+        public CardNumberIsNotValid() : base("El numero de tarjeta ingresado no es válido.")
+        {
+        }
+    }
+    public class PageNotValid : Exception
+    {
+        public PageNotValid() : base("No se admite el valor 0 en la página.")
         {
         }
     }

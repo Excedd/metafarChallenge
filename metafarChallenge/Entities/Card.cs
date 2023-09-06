@@ -29,7 +29,7 @@
         }
 
         public void UpdateLastExtraction()
-            => LastExtraction = DateTimeOffset.UtcNow;
+            => LastExtraction = DateTimeOffset.Now;
 
         private Card()
         { }
