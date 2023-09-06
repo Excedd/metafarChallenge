@@ -43,7 +43,8 @@ void InitializeData(IServiceProvider serviceProvider)
                 Entities.Enums.OperationType.WithDrawal,
                 (decimal)random.NextDouble() * 1000,
                 (decimal)random.NextDouble() * 2000,
-                cards[2].CardId);
+                cards[2].CardId,
+                DateTimeOffset.Now);
 
             dbContext.Operation.Add(operation);
         }

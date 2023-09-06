@@ -1,4 +1,5 @@
 ﻿using Domain.Exceptions;
+using Domain.Extensions;
 using Domain.Repositories;
 using Domain.Services;
 using System.IdentityModel.Tokens.Jwt;
@@ -24,6 +25,7 @@ namespace Domain.UseCases
 
         public async Task DoAsync(string numberCard, string pin)
         {
+            numberCard.IsValidCardNumber();
             var card = await _cardRepository.GetCardByNumberAsync(numberCard) ?? throw new CardNotFoundException();
             await _validateCard.Validate(card, pin);
         }

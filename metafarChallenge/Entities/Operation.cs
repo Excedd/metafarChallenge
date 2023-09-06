@@ -16,23 +16,22 @@ namespace Entities
         }
 
         public Operation(OperationType type, decimal lastBalance,
-            decimal currentBalance, int cardI)
+            decimal currentBalance, int cardI, DateTimeOffset date)
         {
             Type = type;
             LastBalace = lastBalance;
             CurrentBalance = currentBalance;
             CardId = cardI;
-            Date = DateTimeOffset.UtcNow;
+            Date = date;
         }
     }
 
     public class WithdrawalOperation : Operation
     {
         public decimal WithdrawalAmount { get; private set; }
-
         public WithdrawalOperation(decimal withdrawalAmount, decimal lastBalance,
-            decimal currentBalance, int cardId)
-            : base(OperationType.WithDrawal, lastBalance, currentBalance, cardId)
+            decimal currentBalance, int cardId, DateTimeOffset date)
+            : base(OperationType.WithDrawal, lastBalance, currentBalance, cardId, date)
         {
             WithdrawalAmount = withdrawalAmount;
         }

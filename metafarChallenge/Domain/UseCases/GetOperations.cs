@@ -1,5 +1,6 @@
 ﻿using Domain.DTO;
 using Domain.Exceptions;
+using Domain.Extensions;
 using Domain.Repositories;
 
 namespace Domain.UseCases
@@ -24,6 +25,8 @@ namespace Domain.UseCases
 
         public async Task<OperationsPaginated> DoAsync(GetOperationsPaginated getOperationsPaginated)
         {
+            getOperationsPaginated.CardNumber.IsValidCardNumber();
+
             var card = await _cardRepository.GetCardByNumberAsync(getOperationsPaginated.CardNumber) ?? throw new CardNotFoundException();
 
             var operations = await _operationRepository.GetOperationsByCardIdAsync(card.CardId,

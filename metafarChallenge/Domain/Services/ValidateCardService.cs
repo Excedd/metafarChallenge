@@ -34,6 +34,8 @@ namespace Domain.Services
                 card.AddTry();
                 await _cardRepository.UpdateCardAsync(card);
             }
+
+            card.ResetBlocked();
         }
     }
 }

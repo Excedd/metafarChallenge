@@ -26,4 +26,16 @@
         {
         }
     }
+    public class NegativeAmount : Exception
+    {
+        public NegativeAmount() : base("El monto a retirar no puede ser negativo o cero.")
+        {
+        }
+    }
+    public class CardNumberIsNotValid: Exception
+    {
+        public CardNumberIsNotValid() : base("El numero de tarjeta ingresado no es valido.")
+        {
+        }
+    }
 }

@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Entities
+﻿namespace Entities
 {
     public class Card
     {
@@ -19,10 +17,19 @@ namespace Entities
         public void Block()
             => Blocked = true;
 
+        public void ResetBlocked()
+        {
+            Blocked = false;
+            FailedTries = 0;
+        }
+
         public decimal SubtractBalance(int amount)
         {
             return Balance -= amount;
         }
+
+        public void UpdateLastExtraction()
+            => LastExtraction = DateTimeOffset.UtcNow;
 
         private Card()
         { }
